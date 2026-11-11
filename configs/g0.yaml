@@ -1,0 +1,117 @@
+# Gate G0 configuration. Thresholds in `gate:` are PRE-REGISTERED (2026-11-11).
+# Changing any threshold after seeing data requires an entry in notes/decisions.md
+# and must be reported in the paper.
+
+data:
+  endpoint: qlever               # qlever (fast) or wdqs (official, times out on big queries)
+  groups: [athlete, scientist]
+  birth_year_range: [1900, 2000]
+  limit_per_group: 2000000       # full athlete set is 992,835 rows (2026-11-11); a hit cap means truncation
+  # Occupation QIDs written from memory; verify with the build report (empty group = wrong QID).
+  # scientist, researcher, physicist, chemist, mathematician, biologist, computer scientist,
+  # economist, university teacher
+  scientist_occupations: [Q901, Q1650915, Q169470, Q593644, Q170790, Q864503, Q82594, Q188094, Q1622272]
+  profession_of_group: {athlete: athlete, scientist: scientist}
+  slot_groups:
+    citizenship: [athlete, scientist]
+    sport: [athlete]
+    field: [scientist]
+  top_k_values: {citizenship: 30, sport: 25, field: 25}
+  origin_min_support: 3          # other people sharing the surname (leave-one-out)
+  origin_min_purity: 0.5         # modal citizenship share among them
+  seed: 0
+  selection:
+    min_cell_pool: 15            # people in a (origin, profession, decade) cell, for a stable W
+    max_cells_per_slot: 30
+    max_cells_per_origin: 3      # spread cells across name origins
+    items_per_slot: 300          # G0 size: about 900 items in total
+  # Display form used in prompts and candidates (truth keeps the Wikidata label)
+  value_surface:
+    "United States of America": "United States"
+    "People's Republic of China": "China"
+    "Kingdom of the Netherlands": "Netherlands"
+    "association football": "football"
+    "cycle sport": "cycling"
+    "athletics": "athletics"
+
+ghosts:
+  n_per_origin: 20               # split-half reliability uses even vs odd ghosts
+  seed: 0
+
+counts:
+  index: v4_olmo-mix-1124_llama  # OLMo-2 pretraining data (infini-gram); Dolmino is not indexed
+  max_diff_tokens: 100           # window half-width in tokens (both methods)
+  method: name_side              # decided 2026-11-11: CNF counts subsample common values -> c ~ 0 (notes/decisions.md)
+  k_occurrences: 50              # name-side: all occurrences if n <= K, else a seeded sample of K
+  seed: 0
+  demonyms:                      # extra surface forms for the citizenship co-occurrence query
+    "United States of America": [American, USA, U.S.]
+    "United Kingdom": [British, UK, England, Scotland, Wales]
+    "Germany": [German]
+    "France": [French]
+    "Italy": [Italian]
+    "Spain": [Spanish]
+    "India": [Indian]
+    "Japan": [Japanese]
+    "People's Republic of China": [China, Chinese]
+    "Russia": [Russian]
+    "Soviet Union": [Soviet, USSR]
+    "Brazil": [Brazilian]
+    "Canada": [Canadian]
+    "Australia": [Australian]
+    "Kingdom of the Netherlands": [Netherlands, Dutch]
+    "Netherlands": [Dutch]
+    "Sweden": [Swedish]
+    "Norway": [Norwegian]
+    "Denmark": [Danish]
+    "Finland": [Finnish]
+    "Poland": [Polish]
+    "Czech Republic": [Czech]
+    "Czechoslovakia": [Czechoslovak]
+    "Hungary": [Hungarian]
+    "Romania": [Romanian]
+    "Austria": [Austrian]
+    "Switzerland": [Swiss]
+    "Belgium": [Belgian]
+    "Argentina": [Argentine, Argentinian]
+    "Mexico": [Mexican]
+    "South Korea": [South Korean, Korean]
+    "Turkey": [Turkish]
+    "Greece": [Greek]
+    "Portugal": [Portuguese]
+    "Ireland": [Irish]
+    "New Zealand": [New Zealander]
+    "South Africa": [South African]
+    "Nigeria": [Nigerian]
+    "Iran": [Iranian]
+    "Israel": [Israeli]
+    "Ukraine": [Ukrainian]
+    "Yugoslavia": [Yugoslav]
+    "Serbia": [Serbian]
+    "Croatia": [Croatian]
+    "Bulgaria": [Bulgarian]
+    "Colombia": [Colombian]
+    "Chile": [Chilean]
+    "Pakistan": [Pakistani]
+    "Kenya": [Kenyan]
+    "Jamaica": [Jamaican]
+    "German Democratic Republic": [East German, GDR]
+
+models:                          # G0 pair; chat=true means the model's chat template is used
+  - {id: allenai/OLMo-2-1124-7B-Instruct, chat: true}
+  - {id: allenai/OLMo-2-1124-7B, chat: false}
+smoke_model: {id: Qwen/Qwen2.5-0.5B-Instruct, chat: true}
+
+analysis:
+  w_alpha: 0.5                   # add-alpha smoothing for the world prior W (leave-one-out)
+
+gate:
+  primary_model_tag: OLMo-2-1124-7B-Instruct
+  go_mode_match: 0.50            # share of wrong greedy answers equal to the ghost-prior mode
+  max_chance: 0.10               # uniform-chance mode-match must be below this
+  go_delta_auroc: 0.03           # held-out AUROC gain from adding s_m to [log c, log n]
+  kill_mode_match: 0.30
+  pivot_delta_auroc: 0.01
+  min_reliability: 0.90          # split-half reliability of the ghost prior F
+  min_freegen_agreement: 0.85    # free greedy answer maps to the scored argmax
+  min_wrong: 60

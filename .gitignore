@@ -1,0 +1,18 @@
+__pycache__/
+*.pyc
+.pytest_cache/
+.env
+data/*
+!data/.gitkeep
+results/*
+!results/gates/
+results/gates/*
+!results/gates/.gitkeep
+!results/gates/*.md
+!results/gates/*.json
+# run logs are output, not records (the GPU ledger is kept)
+logs/*.log
+# commit the P0 build report, never the data itself
+!data/g0/
+data/g0/*
+!data/g0/build_report.md

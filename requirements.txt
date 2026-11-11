@@ -1,0 +1,16 @@
+torch>=2.3
+transformers>=4.45
+tokenizers
+numpy
+scipy
+scikit-learn
+pandas
+pyyaml
+requests
+datasets
+pytest
+# GPU machines only, optional fast path (verify against HF outputs first):
+# vllm
+# E5 / training phases only:
+# peft
+# accelerate
